@@ -11,6 +11,7 @@ namespace notepad_react.ViewModels
         public string Title {set; get;}
 
         public string Description {set; get;}
+        public bool IsMarkdown {set; get;}
 
         public byte[] Timestamp {set; get;}
 

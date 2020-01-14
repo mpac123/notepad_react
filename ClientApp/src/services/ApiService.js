@@ -21,7 +21,7 @@ export default class ApiService {
       } catch (err) {
         console.error(err);
         console.log("lol")
-        throw Object.create(err);
+        // throw Object.create(err);
       }
     } else {
       let resp = await fetchResponse.statusText;

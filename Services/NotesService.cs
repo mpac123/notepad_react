@@ -11,7 +11,7 @@ namespace notepad_react.Services
     public interface INotesService
     {
         NotesList Read(int page = 1, DateTime? dateFrom = null, DateTime? dateTo = null, int? categoryId = null);
-        Note GetNote(int id);
+        NoteWithCategories GetNote(int id);
         List<Category> GetCategories();
         bool DoesTheFileExist(string title);
         int GetPageWhereTheNoteIs(int noteId, DateTime? dateFrom = null, DateTime? dateTo = null, int? categoryId = null);
@@ -51,11 +51,13 @@ namespace notepad_react.Services
             // Find differences in standard fields and replace if needed
             if (oldNote.Title != newNote.Title
                 || oldNote.Description != newNote.Description
-                || oldNote.NoteDate != newNote.NoteDate)
+                || oldNote.NoteDate != newNote.NoteDate
+                || oldNote.IsMarkdown != newNote.IsMarkdown)
             {
                 oldNote.Title = newNote.Title;
                 oldNote.Description = newNote.Description;
                 oldNote.NoteDate = newNote.NoteDate;
+                oldNote.IsMarkdown = newNote.IsMarkdown;
             }
 
             // Find differences in categories
@@ -90,6 +92,7 @@ namespace notepad_react.Services
             var deletedCategories = categoriesInDb
                 .Where(c => !newNote.Categories.Contains(c.Category.Title));
             _context.RemoveRange(deletedCategories);
+            _context.SaveChanges();
 
         }
 
@@ -98,6 +101,7 @@ namespace notepad_react.Services
             var danglingCategories = _context.Categories
                 .Where(c => c.NoteCategories.Count() == 0);
             _context.RemoveRange(danglingCategories);
+            _context.SaveChanges();
         }
 
         private IIncludableQueryable<Models.Note, Category> GetFilteredList(DateTime? dateFrom = null, DateTime? dateTo = null, int? categoryId = null)
@@ -146,7 +150,12 @@ namespace notepad_react.Services
 
             var notesList = new NotesList
             {
-                Notes = notes,
+                Notes = notes.Select(n => new NoteWithCategories {
+                    Description = n.Description,
+                    NoteID = n.NoteID,
+                    Title = n.Title,
+                    Categories = n.NoteCategories.Select(nc => nc.Category.Title).ToList()
+                }).ToList(),
                 CurrentPage = page,
                 AllPages = allPages == 0 ? 1 : allPages,
             };
@@ -154,9 +163,18 @@ namespace notepad_react.Services
             return notesList;
         }
 
-        public Note GetNote(int id)
+        public NoteWithCategories GetNote(int id)
         {
-            var note = _context.Notes.Where(n => n.NoteID == id).FirstOrDefault();
+            var note = _context.Notes.Where(n => n.NoteID == id)
+            .Select(n => new NoteWithCategories {
+                NoteID = n.NoteID,
+                Title = n.Title,
+                Description = n.Description,
+                Timestamp = n.Timestamp,
+                Categories = n.NoteCategories.Select(nc => nc.Category.Title).ToList(),
+                IsMarkdown = n.IsMarkdown
+            })
+            .FirstOrDefault();
             return note;
         }
 
@@ -190,7 +208,8 @@ namespace notepad_react.Services
             {
                 NoteDate = note.NoteDate,
                 Title = note.Title,
-                Description = note.Description
+                Description = note.Description,
+                IsMarkdown = note.IsMarkdown
             };
             _context.Add(newNote);
             foreach (var oldCat in oldCategories)
@@ -225,6 +244,7 @@ namespace notepad_react.Services
             if (note != null)
             {
                 _context.Remove(note);
+                _context.SaveChanges();
             }
             else
             {

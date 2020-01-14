@@ -15,6 +15,7 @@ namespace notepad_react.Models
 
         [Column(TypeName="NVarChar(MAX)")]
         public string Description {set; get;}
+        public bool IsMarkdown {set; get;}
 
         [Timestamp]
         public byte[] Timestamp {set; get;}

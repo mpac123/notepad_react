@@ -60,7 +60,7 @@ const App = () => {
         />
       )}
       {state === "edit" && (
-        <NoteEdit selectedNoteTitle={selectedNote.title} setListMode={setListMode} />
+        <NoteEdit selectedNoteID={selectedNote.noteID} setListMode={setListMode} />
       )}
       {state === "create" && <NoteEdit setListMode={setListMode} />}
     </Container>

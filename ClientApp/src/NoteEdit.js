@@ -43,7 +43,7 @@ const NoteEditForm = ({
   form,
 
   // props
-  selectedNoteTitle,
+  selectedNoteID,
   setListMode
 }) => {
   const [categories, setCategories] = useState([]);
@@ -52,8 +52,9 @@ const NoteEditForm = ({
 
   useEffect(() => {
     const get = async () => {
-      if (selectedNoteTitle) {
-        setSelectedNote(await apiService.getNote(selectedNoteTitle));
+      console.log("note id", selectedNoteID)
+      if (selectedNoteID) {
+        setSelectedNote(await apiService.getNote(selectedNoteID));
       }
       setCategories(await apiService.getCategories());
     };
@@ -63,8 +64,8 @@ const NoteEditForm = ({
   const addCategory = () => {
     const currentValue = semanticRef.current.inputRef.current.value;
     if (currentValue) {
-      if (!categories.find(c => c === currentValue)) {
-        setCategories([...categories, currentValue]);
+      if (!categories.find(c => c.title === currentValue)) {
+        setCategories([...categories, {title: currentValue}]);
       }
       semanticRef.current.inputRef.current.value = "";
     }
@@ -74,26 +75,29 @@ const NoteEditForm = ({
     e.preventDefault();
     console.log("Submitting!");
     form.validateFields(async (errs, values) => {
+      
       if (errs) {
         notification.error({ message: "Validation errors occured!" });
       } else {
+        values = {
+          ...values,
+          noteDate: moment(values.noteDate).format("YYYY-MM-DD"),
+          timestamp: selectedNote ? selectedNote.timestamp : null
+        }
+        console.log("values", values)
         if (selectedNote) {
-          values = {
-            ...values,
-            dateTime: moment(values.dateTime).format("YYYY-MM-DD")
-            
-          }
+          
           try {
-            await apiService.updateNote(values.title, values);
-            
+            await apiService.updateNote(selectedNote.noteID, values);
+            message.success("The note has been updated");
           } catch {
             message.error("The update was not succesful");
             return
           }
         } else {
           try{
-
             await apiService.addNote(values);
+            message.success("The note has been added");
           } catch {
             message.error("The note with such a title aready exists.")
             return
@@ -111,6 +115,7 @@ const NoteEditForm = ({
     isFieldTouched
   } = form;
 
+  console.log("note", selectedNote);
   return (
     <Segment color="blue">
       <Header>
@@ -123,13 +128,13 @@ const NoteEditForm = ({
             {getFieldDecorator("title", {
               rules: [{ required: true, message: "Please input the title!" }],
               initialValue: selectedNote ? selectedNote.title : undefined
-            })(<Input disabled={selectedNote} placeholder="Title" />)}
+            })(<Input placeholder="Title" />)}
           </Form.Item>
           <Form.Item label="Date">
-            {getFieldDecorator("dateTime", {
+            {getFieldDecorator("noteDate", {
               rules: [{ required: true, message: "Please input the date!" }],
               initialValue: selectedNote
-                ? moment(selectedNote.dateTime)
+                ? moment(selectedNote.noteDate)
                 : undefined
             })(<DatePicker placeholder="yyyy-mm-dd" />)}
           </Form.Item>
@@ -140,8 +145,8 @@ const NoteEditForm = ({
             })(<Checkbox>Is Markdown</Checkbox>)}
           </Form.Item>
           <Form.Item label="Content">
-            {getFieldDecorator("content", {
-              initialValue: selectedNote ? selectedNote.content : undefined
+            {getFieldDecorator("description", {
+              initialValue: selectedNote ? selectedNote.description : undefined
             })(<Input.TextArea placeholder="Content" rows="10" />)}
           </Form.Item>
           <Form.Item label="Categories">
@@ -160,8 +165,8 @@ const NoteEditForm = ({
                 placeholder="Please select your categories"
               >
                 {categories.map(c => (
-                  <Option key={c} value={c}>
-                    {c}
+                  <Option key={c.title} value={c.title}>
+                    {c.title}
                   </Option>
                 ))}
               </Select>

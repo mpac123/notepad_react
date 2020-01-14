@@ -37,6 +37,7 @@ const NotesList = ({
     );
     const category = await apiService.getCategories();
     console.log("notes", notes);
+    console.log("categories", category);
     setNotesList(notes);
     setCategories(category);
     setLoading(false);
@@ -61,11 +62,12 @@ const NotesList = ({
     setFilters({ ...filters, category: value });
   };
 
-  const deleteNote = async title => {
+  const deleteNote = async id => {
     try {
-      await apiService.deleteNote(title);
+      await apiService.deleteNote(id);
+      message.success("Note has been deleted successfully");
     } catch {
-      message.error("Note couln't be deleted");
+      message.error("Note could not be deleted");
     }
     fetchNotes();
   };
@@ -90,8 +92,8 @@ const NotesList = ({
             >
               <Select.Option value="0">All categories</Select.Option>
               {categories.map(c => (
-                <Select.Option key={c} value={c}>
-                  {c}
+                <Select.Option key={c.categoryID} value={c.categoryID}>
+                  {c.title}
                 </Select.Option>
               ))}
             </Select>
@@ -131,7 +133,7 @@ const NotesList = ({
                     |{" "}
                     <Button
                       size="tiny"
-                      onClick={() => deleteNote(n.title)}
+                      onClick={() => deleteNote(n.noteID)}
                       color="red"
                     >
                       Delete

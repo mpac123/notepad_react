@@ -57,6 +57,7 @@ namespace notepad_react.Controllers
                 return BadRequest();
             }
             _service.AddNote(note);
+            _service.DeleteDanglingCategories();
             return Ok();
         }
 
@@ -66,6 +67,7 @@ namespace notepad_react.Controllers
             try
             {
                 _service.EditNote(id, note);
+                _service.DeleteDanglingCategories();
             }
             catch
             {
