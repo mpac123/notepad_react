@@ -1,0 +1,193 @@
+import React, { useState, useEffect, useRef } from "react";
+import { apiService } from "./services";
+import {
+  Card,
+  DatePicker,
+  Pagination,
+  Form,
+  Input,
+  Select,
+  Checkbox,
+  notification,
+  message
+} from "antd";
+import {
+  Loader,
+  Button,
+  Segment,
+  Header,
+  Icon,
+  Input as SemanticInput
+} from "semantic-ui-react";
+import moment from "moment";
+
+const { Option } = Select;
+
+function hasErrors(fieldsError) {
+  return Object.keys(fieldsError).some(field => fieldsError[field]);
+}
+
+const formItemLayout = {
+  labelCol: {
+    xs: { span: 24 },
+    sm: { span: 8 }
+  },
+  wrapperCol: {
+    xs: { span: 24 },
+    sm: { span: 16 }
+  }
+};
+
+const NoteEditForm = ({
+  // form props
+  form,
+
+  // props
+  selectedNoteTitle,
+  setListMode
+}) => {
+  const [categories, setCategories] = useState([]);
+  const [selectedNote, setSelectedNote] = useState(undefined);
+  const semanticRef = useRef(null);
+
+  useEffect(() => {
+    const get = async () => {
+      if (selectedNoteTitle) {
+        setSelectedNote(await apiService.getNote(selectedNoteTitle));
+      }
+      setCategories(await apiService.getCategories());
+    };
+    get();
+  }, []);
+
+  const addCategory = () => {
+    const currentValue = semanticRef.current.inputRef.current.value;
+    if (currentValue) {
+      if (!categories.find(c => c === currentValue)) {
+        setCategories([...categories, currentValue]);
+      }
+      semanticRef.current.inputRef.current.value = "";
+    }
+  };
+
+  const handleSubmit = e => {
+    e.preventDefault();
+    console.log("Submitting!");
+    form.validateFields(async (errs, values) => {
+      if (errs) {
+        notification.error({ message: "Validation errors occured!" });
+      } else {
+        if (selectedNote) {
+          values = {
+            ...values,
+            dateTime: moment(values.dateTime).format("YYYY-MM-DD")
+            
+          }
+          try {
+            await apiService.updateNote(values.title, values);
+            
+          } catch {
+            message.error("The update was not succesful");
+            return
+          }
+        } else {
+          try{
+
+            await apiService.addNote(values);
+          } catch {
+            message.error("The note with such a title aready exists.")
+            return
+          }
+        }
+        setListMode();
+      }
+    });
+  };
+
+  const {
+    getFieldDecorator,
+    getFieldsError,
+    getFieldError,
+    isFieldTouched
+  } = form;
+
+  return (
+    <Segment color="blue">
+      <Header>
+        <Icon name="edit" />{" "}
+        {!selectedNote ? <> Create new </> : <>Update existing</>} note
+      </Header>
+      <Segment basic>
+        <Form {...formItemLayout} onSubmit={handleSubmit}>
+          <Form.Item label="Title">
+            {getFieldDecorator("title", {
+              rules: [{ required: true, message: "Please input the title!" }],
+              initialValue: selectedNote ? selectedNote.title : undefined
+            })(<Input disabled={selectedNote} placeholder="Title" />)}
+          </Form.Item>
+          <Form.Item label="Date">
+            {getFieldDecorator("dateTime", {
+              rules: [{ required: true, message: "Please input the date!" }],
+              initialValue: selectedNote
+                ? moment(selectedNote.dateTime)
+                : undefined
+            })(<DatePicker placeholder="yyyy-mm-dd" />)}
+          </Form.Item>
+          <Form.Item label="Is Markdown">
+            {getFieldDecorator("isMarkdown", {
+              valuePropName: "checked",
+              initialValue: selectedNote ? selectedNote.isMarkdown : false
+            })(<Checkbox>Is Markdown</Checkbox>)}
+          </Form.Item>
+          <Form.Item label="Content">
+            {getFieldDecorator("content", {
+              initialValue: selectedNote ? selectedNote.content : undefined
+            })(<Input.TextArea placeholder="Content" rows="10" />)}
+          </Form.Item>
+          <Form.Item label="Categories">
+            {getFieldDecorator("categories", {
+              rules: [
+                {
+                  required: true,
+                  message: "Please select your categories!",
+                  type: "array"
+                }
+              ],
+              initialValue: selectedNote ? selectedNote.categories : undefined
+            })(
+              <Select
+                mode="multiple"
+                placeholder="Please select your categories"
+              >
+                {categories.map(c => (
+                  <Option key={c} value={c}>
+                    {c}
+                  </Option>
+                ))}
+              </Select>
+            )}
+          </Form.Item>
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              disabled={hasErrors(getFieldsError())}
+            >
+              {selectedNote ? <span>Update</span> : <span>Create</span>}
+            </Button>
+          </Form.Item>
+        </Form>
+      </Segment>
+      <hr />
+      <Segment basic>
+        <Header>Add category</Header>
+        <SemanticInput ref={semanticRef} />
+        <Button onClick={addCategory}>Add</Button>
+      </Segment>
+    </Segment>
+  );
+};
+
+const NoteEdit = Form.create({ name: "note_edit" })(NoteEditForm);
+
+export default NoteEdit;
