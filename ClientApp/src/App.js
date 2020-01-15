@@ -19,8 +19,14 @@ const App = () => {
   const setListMode = () => {
     setState("list");
     setSelectedNote(undefined);
-    console.log("list mode");
   };
+
+  const setFullListMode = () => {
+    setState("list");
+    setSelectedNote(undefined);
+    setFilters({...filters, category: null, dateFrom: null, dateTo: null})
+  };
+
 
   const setCreateMode = () => {
     setState("create");
@@ -32,7 +38,7 @@ const App = () => {
       <Segment padded basic>
         <Row>
           <Col span={12}>
-            <h1 className={styles.header}>Notes list</h1>
+            <h1 className={styles.header}>Notepad</h1>
           </Col>
           <Col>
             <Button.Group
@@ -41,7 +47,7 @@ const App = () => {
               basic
               style={{ marginTop: "20px" }}
             >
-              <Button onClick={setListMode}>All notes</Button>
+              <Button onClick={setFullListMode}>All notes</Button>
               <Button onClick={setCreateMode}>Add new note</Button>
             </Button.Group>
           </Col>

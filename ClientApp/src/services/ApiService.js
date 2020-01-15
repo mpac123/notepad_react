@@ -20,7 +20,6 @@ export default class ApiService {
         return await fetchResponse.json();
       } catch (err) {
         console.error(err);
-        console.log("lol")
         // throw Object.create(err);
       }
     } else {
@@ -28,7 +27,7 @@ export default class ApiService {
       try {
         resp = await fetchResponse.json();
       } catch (err) {
-        console.error(resp);
+        console.error(resp, err);
       }
       /*Using statusText instead since if it'se.g. a 404, the .json() explodes*/
       throw Object.create({ title: errorTitle, message: resp });
@@ -55,7 +54,6 @@ export default class ApiService {
       query += `category=${category}&`;
     }
     query = query.slice(0, -1);
-    console.log(query);
     return this.sendRequest(`${this.serverUrl}/notes${query}`, "GET");
   }
 

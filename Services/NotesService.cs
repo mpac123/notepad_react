@@ -134,13 +134,13 @@ namespace notepad_react.Services
 
             var allPages = (int)Math.Ceiling((decimal)(filteredList.Count()) / 10);
 
-            if (page == 0)
-            {
-                page = 1;
-            }
             if (page > allPages)
             {
                 page = allPages;
+            }
+            if (page == 0)
+            {
+                page = 1;
             }
 
             var notes = filteredList
@@ -154,7 +154,8 @@ namespace notepad_react.Services
                     Description = n.Description,
                     NoteID = n.NoteID,
                     Title = n.Title,
-                    Categories = n.NoteCategories.Select(nc => nc.Category.Title).ToList()
+                    Categories = n.NoteCategories.Select(nc => nc.Category.Title).ToList(),
+                    NoteDate = n.NoteDate
                 }).ToList(),
                 CurrentPage = page,
                 AllPages = allPages == 0 ? 1 : allPages,
@@ -172,7 +173,8 @@ namespace notepad_react.Services
                 Description = n.Description,
                 Timestamp = n.Timestamp,
                 Categories = n.NoteCategories.Select(nc => nc.Category.Title).ToList(),
-                IsMarkdown = n.IsMarkdown
+                IsMarkdown = n.IsMarkdown,
+                NoteDate = n.NoteDate
             })
             .FirstOrDefault();
             return note;

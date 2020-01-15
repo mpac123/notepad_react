@@ -36,8 +36,6 @@ const NotesList = ({
       filters.category
     );
     const category = await apiService.getCategories();
-    console.log("notes", notes);
-    console.log("categories", category);
     setNotesList(notes);
     setCategories(category);
     setLoading(false);
@@ -81,14 +79,14 @@ const NotesList = ({
         </Row>
         <Row>
           <Col span={12}>
-            <DatePicker.RangePicker onChange={onDateChange} />
+            <DatePicker.RangePicker onChange={onDateChange} value={[filters.dateFrom && moment(filters.dateFrom), filters.dateTo && moment(filters.dateTo)]} />
           </Col>
           <Col span={12}>
             <Select
               style={{ width: "120" }}
               placeholder="Select category"
               onChange={onCategoryChange}
-              defaultValue="0"
+              defaultValue={filters.category || "0"}
             >
               <Select.Option value="0">All categories</Select.Option>
               {categories.map(c => (
@@ -116,7 +114,7 @@ const NotesList = ({
               {Object.values(notesList.notes).map(n => (
                 <TableRow key={n.title}>
                   <TableCell>
-                    {moment(n.dateTime).format("DD MMM YYYY")}
+                    {moment(n.noteDate).format("DD MMM YYYY")}
                   </TableCell>
                   <TableCell>{n.title}</TableCell>
                   <TableCell>

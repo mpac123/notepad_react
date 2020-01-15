@@ -52,7 +52,6 @@ const NoteEditForm = ({
 
   useEffect(() => {
     const get = async () => {
-      console.log("note id", selectedNoteID)
       if (selectedNoteID) {
         setSelectedNote(await apiService.getNote(selectedNoteID));
       }
@@ -73,7 +72,6 @@ const NoteEditForm = ({
 
   const handleSubmit = e => {
     e.preventDefault();
-    console.log("Submitting!");
     form.validateFields(async (errs, values) => {
       
       if (errs) {
@@ -84,7 +82,6 @@ const NoteEditForm = ({
           noteDate: moment(values.noteDate).format("YYYY-MM-DD"),
           timestamp: selectedNote ? selectedNote.timestamp : null
         }
-        console.log("values", values)
         if (selectedNote) {
           
           try {
@@ -115,7 +112,6 @@ const NoteEditForm = ({
     isFieldTouched
   } = form;
 
-  console.log("note", selectedNote);
   return (
     <Segment color="blue">
       <Header>

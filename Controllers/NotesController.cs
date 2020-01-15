@@ -25,9 +25,9 @@ namespace notepad_react.Controllers
 
         [HttpGet]
         public ActionResult<NotesList> GetNotes(int page = 1, DateTime? dateFrom = null,
-                DateTime? dateTo = null, int? categoryId = null)
+                DateTime? dateTo = null, int? category = null)
         {
-            var notesList = _service.Read(page, dateFrom, dateTo, categoryId);
+            var notesList = _service.Read(page, dateFrom, dateTo, category);
             return Ok(notesList);
         }
 
@@ -82,6 +82,7 @@ namespace notepad_react.Controllers
             try
             {
                 _service.DeleteNote(id);
+                _service.DeleteDanglingCategories();
             }
             catch
             {
